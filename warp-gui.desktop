@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Warp
+Comment=Warp Linux gui client for Cloudflare Warp.
+Exec=/usr/local/bin/warp-gui
+Path=/usr/local/bin/
+Icon=/usr/share/icons/Humanity/apps/32/warp-gui.svg
+Terminal=false
+Type=Application
+Categories=Utility;Development;
