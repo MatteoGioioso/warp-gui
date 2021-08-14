@@ -13,17 +13,23 @@ import (
 	"time"
 )
 
-//go:embed warp-logo.jpeg
+//go:embed warp-gui.jpeg
 var f embed.FS
-var file, _ = f.ReadFile("warp-logo.jpeg")
+var activeIcon, _ = f.ReadFile("warp-gui.jpeg")
+
+//go:embed warp-gui-inactive.jpg
+var f2 embed.FS
+var inactiveIcon, _ = f2.ReadFile("warp-gui-inactive.jpg")
 
 type Ui struct {
 	canvas *fyne.Container
+	reconnectEnabled bool
+	window fyne.Window
 }
 
-func NewUi() *Ui {
+func NewUi(window fyne.Window) *Ui {
 	box := container.NewVBox()
-	return &Ui{canvas: box}
+	return &Ui{canvas: box, reconnectEnabled: false, window: window}
 }
 
 func (u Ui) render() {
@@ -45,15 +51,24 @@ func (u Ui) render() {
 			statusLabel.Refresh()
 
 			if status == "Connected" {
+				u.window.SetIcon(fyne.NewStaticResource("icon", activeIcon))
 				button.SetText("Disconnect")
 				button.OnTapped = func() {
 					u.DisconnectWarp()
 				}
 				button.Refresh()
 			} else {
+				u.window.SetIcon(fyne.NewStaticResource("icon", inactiveIcon))
 				button.SetText("Connect")
 				button.OnTapped = func() {
 					u.ConnectWarp()
+				}
+
+				// Try to reconnect
+				if u.reconnectEnabled {
+					if _, err := u.ConnectWarp(); err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 
@@ -92,12 +107,11 @@ func (u Ui) DisconnectWarp() (string, error) {
 func main() {
 	a := app.New()
 	w := a.NewWindow("Warp")
-
-	w.SetIcon(fyne.NewStaticResource("icon", file))
+	w.SetIcon(fyne.NewStaticResource("icon", activeIcon))
 	w.Resize(fyne.NewSize(300, 100))
 	w.SetFixedSize(true)
 
-	ui := NewUi()
+	ui := NewUi(w)
 	ui.render()
 	w.SetContent(ui.canvas)
 	w.ShowAndRun()
